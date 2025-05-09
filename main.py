@@ -58,12 +58,12 @@ def get_open_interest(symbol):
 
 async def send_signal(symbol, prev_vol, curr_vol, price, rsi, prev_oi, curr_oi):
     msg = (
-        f'📈 Сигнал по {symbol}!
-'
-        f'Объём: {prev_vol:.0f} → {curr_vol:.0f}\n'
-        f'Цена: {price:.4f}, RSI: {rsi:.1f}\n'
-        f'Рост OI: {curr_oi / prev_oi * 100 - 100:.2f}%'
-    )
+    f'📈 Сигнал по {symbol}!\n'
+    f'Объём: {prev_vol:.0f} → {curr_vol:.0f}\n'
+    f'Цена: {price:.4f}, RSI: {rsi:.1f}\n'
+    f'Рост OI: {curr_oi / prev_oi * 100 - 100:.2f}%'
+)
+
     await bot.send_message(chat_id=CHAT_ID, text=msg)
 
 async def monitor():
