@@ -60,22 +60,32 @@ def get_ohlcv_and_rsi(symbol):
     return volumes[-2], volumes[-1], closes[-1], rsi
 
 def get_open_interest(symbol):
-    print(f"Запрос открытого интереса для {symbol}...")
     url = f'https://open-api.coinglass.com/public/v1/oi?symbol={symbol}'
     headers = {'Authorization': f'Bearer {COINGLASS_API_KEY}'}
-    r = requests.get(url, headers=headers)
-    if r.status_code != 200:
-        print(f"Ошибка при запросе к API CoinGlass для {symbol}: {r.status_code}")
+
+    try:
+        print(f"🔍 Запрос OI к CoinGlass: {url}")
+        r = requests.get(url, headers=headers)
+        print(f"📩 HTTP статус: {r.status_code}")
+
+        if r.status_code != 200:
+            print(f"❌ Ошибка запроса: {r.status_code}, ответ: {r.text}")
+            return 0, 0
+
+        data = r.json().get('data', [])
+        if not data:
+            print("⚠️ Ответ CoinGlass пустой или не содержит 'data'")
+            return 0, 0
+
+        oi_data = data[0]
+        prev_oi = oi_data.get('prevOI', 0)
+        curr_oi = oi_data.get('currOI', 0)
+        print(f"✅ OI получен: prevOI={prev_oi}, currOI={curr_oi}")
+        return prev_oi, curr_oi
+
+    except Exception as e:
+        print(f"‼️ Исключение при запросе OI для {symbol}: {e}")
         return 0, 0
-    data = r.json().get('data', [])
-    if not data:
-        print(f"Нет данных об открытом интересе для {symbol}.")
-        return 0, 0
-    oi_data = data[0]
-    prev_oi = oi_data.get('prevOI', 0)
-    curr_oi = oi_data.get('currOI', 0)
-    print(f"Открытый интерес для {symbol}: prevOI={prev_oi}, currOI={curr_oi}")
-    return prev_oi, curr_oi
 
 async def send_signal(symbol, prev_vol, curr_vol, price, rsi, prev_oi, curr_oi):
     print(f"Отправка сигнала для {symbol}...")
