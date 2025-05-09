@@ -17,7 +17,7 @@ bot = Bot(token=TELEGRAM_TOKEN)
 
 def calculate_rsi(closes, period=14):
     if len(closes) < period + 1:
-        print("Недостаточно данных для расчета RSI.")
+        print(f"Недостаточно данных для расчета RSI. Количество данных: {len(closes)}")
         return None
     gains = [max(closes[i] - closes[i - 1], 0) for i in range(1, period + 1)]
     losses = [abs(min(closes[i] - closes[i - 1], 0)) for i in range(1, period + 1)]
@@ -29,7 +29,7 @@ def calculate_rsi(closes, period=14):
     return 100 - (100 / (1 + rs))
 
 def get_usdt_symbols():
-    print("Получаем список доступных символов с USDT...")
+    print("Запрос списка доступных символов с USDT...")
     r = requests.get('https://api.binance.com/api/v3/exchangeInfo')
     if r.status_code != 200:
         print(f"Ошибка при запросе к Binance API: {r.status_code}")
@@ -39,11 +39,11 @@ def get_usdt_symbols():
         if s['status'] == 'TRADING' and s['quoteAsset'] == QUOTE_ASSET
         and 'UP' not in s['symbol'] and 'DOWN' not in s['symbol']
     ]
-    print(f"Найдено символов: {len(symbols)}")
+    print(f"Найдено {len(symbols)} символов.")
     return symbols
 
 def get_ohlcv_and_rsi(symbol):
-    print(f"Запрос данных для {symbol}...")
+    print(f"Запрос OHLCV и RSI для {symbol}...")
     url = f'https://api.binance.com/api/v3/klines?symbol={symbol}&interval=1h&limit=20'
     r = requests.get(url)
     if r.status_code != 200:
@@ -53,12 +53,14 @@ def get_ohlcv_and_rsi(symbol):
     closes = [float(c[4]) for c in data]
     volumes = [float(c[5]) for c in data]
     if len(closes) < 15:
-        print(f"Недостаточно данных для расчета RSI по {symbol}.")
+        print(f"Недостаточно данных для расчета RSI по {symbol}. Количество данных: {len(closes)}")
         return 0, 0, 0, None
-    return volumes[-2], volumes[-1], closes[-1], calculate_rsi(closes)
+    rsi = calculate_rsi(closes)
+    print(f"RSI для {symbol}: {rsi}")
+    return volumes[-2], volumes[-1], closes[-1], rsi
 
 def get_open_interest(symbol):
-    print(f"Получаем открытый интерес для {symbol}...")
+    print(f"Запрос открытого интереса для {symbol}...")
     url = f'https://open-api.coinglass.com/public/v1/oi?symbol={symbol}'
     headers = {'Authorization': f'Bearer {COINGLASS_API_KEY}'}
     r = requests.get(url, headers=headers)
@@ -70,10 +72,13 @@ def get_open_interest(symbol):
         print(f"Нет данных об открытом интересе для {symbol}.")
         return 0, 0
     oi_data = data[0]
-    return oi_data.get('prevOI', 0), oi_data.get('currOI', 0)
+    prev_oi = oi_data.get('prevOI', 0)
+    curr_oi = oi_data.get('currOI', 0)
+    print(f"Открытый интерес для {symbol}: prevOI={prev_oi}, currOI={curr_oi}")
+    return prev_oi, curr_oi
 
 async def send_signal(symbol, prev_vol, curr_vol, price, rsi, prev_oi, curr_oi):
-    print(f"Отправляем сигнал для {symbol}...")
+    print(f"Отправка сигнала для {symbol}...")
     msg = (
         f"📈 Сигнал по {symbol}!\n"
         f"Объём: {prev_vol:.0f} → {curr_vol:.0f}\n"
@@ -85,6 +90,8 @@ async def send_signal(symbol, prev_vol, curr_vol, price, rsi, prev_oi, curr_oi):
 async def monitor():
     await asyncio.to_thread(bot.send_message, chat_id=CHAT_ID, text="✅ Бот запущен (Render Background Worker)")
     symbols = get_usdt_symbols()
+    if not symbols:
+        print("Нет доступных символов для мониторинга.")
     while True:
         for symbol in symbols:
             try:
