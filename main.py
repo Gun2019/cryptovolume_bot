@@ -1,9 +1,10 @@
 import os
 import requests
-import asyncio
+import time
 from telegram import Bot
 from dotenv import load_dotenv
 
+# Загрузка .env
 load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -56,18 +57,20 @@ def get_open_interest(symbol):
     oi_data = data[0]
     return oi_data.get('prevOI', 0), oi_data.get('currOI', 0)
 
-async def send_signal(symbol, prev_vol, curr_vol, price, rsi, prev_oi, curr_oi):
+def send_signal(symbol, prev_vol, curr_vol, price, rsi, prev_oi, curr_oi):
     msg = (
-    f'📈 Сигнал по {symbol}!\n'
-    f'Объём: {prev_vol:.0f} → {curr_vol:.0f}\n'
-    f'Цена: {price:.4f}, RSI: {rsi:.1f}\n'
-    f'Рост OI: {curr_oi / prev_oi * 100 - 100:.2f}%'
-)
+        f'📈 Сигнал по {symbol}!
+'
+        f'Объём: {prev_vol:.0f} → {curr_vol:.0f}
+'
+        f'Цена: {price:.4f}, RSI: {rsi:.1f}
+'
+        f'Рост OI: {curr_oi / prev_oi * 100 - 100:.2f}%'
+    )
+    bot.send_message(chat_id=CHAT_ID, text=msg)
 
-    await bot.send_message(chat_id=CHAT_ID, text=msg)
-
-async def monitor():
-    await bot.send_message(chat_id=CHAT_ID, text="✅ Бот запущен (Render Background Worker)")
+def monitor():
+    bot.send_message(chat_id=CHAT_ID, text="✅ Бот запущен (Render Background Worker)")
     symbols = get_usdt_symbols()
     while True:
         for symbol in symbols:
@@ -77,11 +80,11 @@ async def monitor():
                 if (curr_vol > prev_vol * 2 and curr_vol > 100000 and
                     rsi is not None and rsi < 70 and
                     prev_oi > 0 and curr_oi > prev_oi * 1.1):
-                    await send_signal(symbol, prev_vol, curr_vol, price, rsi, prev_oi, curr_oi)
-                    await asyncio.sleep(1)
+                    send_signal(symbol, prev_vol, curr_vol, price, rsi, prev_oi, curr_oi)
+                    time.sleep(1)
             except Exception as e:
                 print(f"Ошибка с {symbol}: {e}")
-        await asyncio.sleep(600)
+        time.sleep(600)
 
 if __name__ == '__main__':
-    asyncio.run(monitor())
+    monitor()
