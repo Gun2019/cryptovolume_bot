@@ -57,13 +57,14 @@ def get_open_interest(symbol):
     oi_data = data[0]
     return oi_data.get('prevOI', 0), oi_data.get('currOI', 0)
 
-def send_signal(symbol, prev_vol, curr_vol, price, rsi, prev_oi, curr_oi):
-    msg = f"""📈 Сигнал по {symbol}!
+async def send_signal(symbol, prev_vol, curr_vol, price, rsi, prev_oi, curr_oi):
+    msg = (
+        f"""📈 Сигнал по {symbol}!
 Объём: {prev_vol:.0f} → {curr_vol:.0f}
 Цена: {price:.4f}, RSI: {rsi:.1f}
 Рост OI: {curr_oi / prev_oi * 100 - 100:.2f}%"""
     )
-    bot.send_message(chat_id=CHAT_ID, text=msg)
+    await bot.send_message(chat_id=CHAT_ID, text=msg)
 
 def monitor():
     bot.send_message(chat_id=CHAT_ID, text="✅ Бот запущен (Render Background Worker)")
