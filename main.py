@@ -3,10 +3,10 @@ import requests
 import time
 import asyncio
 from telegram import Bot
-from dotenv import load_dotenv
 
-# Загрузка переменных окружения
-load_dotenv()
+# На Render переменные окружения задаются вручную, dotenv не нужен
+# from dotenv import load_dotenv
+# load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
@@ -86,4 +86,8 @@ async def monitor():
         await asyncio.sleep(600)
 
 if __name__ == '__main__':
-    asyncio.run(monitor())
+    print("🟢 main.py стартует...")
+    try:
+        asyncio.run(monitor())
+    except Exception as e:
+        print(f"‼️ Ошибка запуска: {e}")
