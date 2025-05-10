@@ -45,7 +45,7 @@ def get_usdt_symbols():
 def get_ohlcv_and_rsi(symbol):
     print(f"Запрос OHLCV и RSI для {symbol}...")
     url = f'https://api.binance.com/api/v3/klines?symbol={symbol}&interval=1h&limit=20'
-    r = requests.get(url)
+    r = requests.get('https://api.binance.com/api/v3/exchangeInfo')
     if r.status_code != 200:
         print(f"Ошибка при запросе к Binance API для {symbol}: {r.status_code}")
         return 0, 0, 0, None
