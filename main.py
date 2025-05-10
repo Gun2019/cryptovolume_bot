@@ -56,7 +56,11 @@ async def monitor():
     print("CHAT_ID:", CHAT_ID)
     print("COINGLASS_API_KEY exists:", bool(COINGLASS_API_KEY))
 
-    await asyncio.to_thread(bot.send_message, chat_id=CHAT_ID, text="✅ Бот запущен (фильтр CoinGlass)")
+    try:
+        await asyncio.to_thread(bot.send_message, chat_id=CHAT_ID, text="✅ Бот запущен (фильтр CoinGlass)")
+        print("✅ Стартовое сообщение отправлено.")
+    except Exception as e:
+        print(f"‼️ Не удалось отправить стартовое сообщение: {e}")
 
     while True:
         signals = get_filtered_signals()
