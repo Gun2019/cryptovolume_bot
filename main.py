@@ -3,10 +3,6 @@ import requests
 import time
 import asyncio
 from telegram import Bot
-from dotenv import load_dotenv
-
-# Загрузка переменных окружения
-load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
