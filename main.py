@@ -98,6 +98,10 @@ async def send_signal(symbol, prev_vol, curr_vol, price, rsi, prev_oi, curr_oi):
     await asyncio.to_thread(bot.send_message, chat_id=CHAT_ID, text=msg)
 
 async def monitor():
+    print("TELEGRAM_TOKEN exists:", bool(TELEGRAM_TOKEN))
+    print("CHAT_ID:", CHAT_ID)
+    print("COINGLASS_API_KEY exists:", bool(COINGLASS_API_KEY))
+
     await asyncio.to_thread(bot.send_message, chat_id=CHAT_ID, text="✅ Бот запущен (Render Background Worker)")
     symbols = get_usdt_symbols()
     if not symbols:
@@ -108,7 +112,7 @@ async def monitor():
                 prev_vol, curr_vol, price, rsi = get_ohlcv_and_rsi(symbol)
                 prev_oi, curr_oi = get_open_interest(symbol)
                 if (
-                    curr_vol > prev_vol * 2 and curr_vol > 100000 and
+                    curr_vol >= prev_vol * 2 and curr_vol >= 2_000_000 and
                     rsi is not None and rsi < 70 and
                     prev_oi > 0 and curr_oi > prev_oi * 1.1
                 ):
