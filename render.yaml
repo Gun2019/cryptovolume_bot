@@ -1,7 +1,15 @@
 services:
+services:
   - type: worker
-    name: coin-glass-bot
+    name: crypto-signal-bot
     env: python
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python main.py
-    autoDeploy: false
+    envVars:
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: CHAT_ID
+        sync: false
+      - key: COINGLASS_API_KEY
+        sync: false
